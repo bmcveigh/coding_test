@@ -1,0 +1,106 @@
+<?php
+
+/**
+ * @file
+ * Coding test for TekSystems.
+ *
+ *  1. Display a block that shows the time the user last logged in with a message of “You last logged in at…” 
+ *  2. In the user’s current time-zone 
+ *  3. Have the block automatically be placed in left siderail region (if available) 
+ *  4. Make sure that the block is not visible for non-logged in users. 
+ *  5. Make this a panels content type instead of a block 
+ *  6. Allow the message to be configured per user - display a different message per user. 
+ *  7. Frontend JavaScript should collapse (animated) the block after 10 seconds.
+ */
+
+/**
+ * Implements hook_block_info().
+ */
+function coding_test_block_info() {
+  $blocks['userloggedin'] = array(
+    'info' => t('User Logged In'),
+    'status' => TRUE,
+    'region' => 'sidebar_first',
+    'cache' => DRUPAL_NO_CACHE,
+  );
+
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function coding_test_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+    case 'userloggedin':
+      global $user;
+
+      if (isset($user->name)) {
+	    $block['subject'] = t('User Logged In');
+	    $block['content'] = coding_test_get_block_message();
+  	  }
+      break;
+  }
+
+  return $block;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function coding_test_menu() {
+  $items['admin/config/people/coding-test'] = array(
+    'title' => 'Configure Coding Test',
+    'description' => 'This is the settings page for the coding test.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('coding_test_settings_form'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+/**
+ * Returns the message for the user-logged-in block.
+ *
+ * @return string
+ *   The message for the user-logged-in block.
+ */
+function coding_test_get_block_message() {
+  $build = array();
+
+  $js_path = drupal_get_path('module', 'coding_test') . '/coding_test.js';
+
+  // Add the js to hide the block in animated fashion
+  // after 10 seconds.
+  drupal_add_js($js_path);
+
+  // Load the global $user object.
+  global $user;
+
+  // The UNIX timestamp for the user login time.
+  $timestamp = isset($user->login) ? $user->login : 0;
+
+  $login_time = date('F j, Y, g:i a', $timestamp);
+  
+  $output = isset($user->uid) ? '<div id="login-message">' . variable_get('coding_test_message', 'You last logged in at...') . ' <strong>' . $login_time . '</strong></div>' : '';
+
+  return $output;
+}
+
+/**
+ * The settings form for the coding test.
+ */
+function coding_test_settings_form($form, &$form_state) {
+  $form['coding_test_message'] = array(
+  	'#type' => 'textfield',
+  	'#title' => t('Custom message'),
+  	'#description' => t('Enter custom message for user logged in message.'),
+  	'#default_value' => variable_get('coding_test_message', 'You last logged in at...'),
+  	'#required' => TRUE,
+  );
+
+  return system_settings_form($form);
+}

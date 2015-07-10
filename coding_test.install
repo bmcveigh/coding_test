@@ -1,0 +1,13 @@
+<?php
+
+/**
+ * @file
+ * The install file for the Coding Test module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ */
+ function coding_test_uninstall() {
+ 	variable_del('coding_test_message');
+ }

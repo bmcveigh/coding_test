@@ -1,0 +1,5 @@
+name = Coding Test
+description = Brian McVeigh's coding test for TekSystems
+package = Brian McVeigh
+core = 7.x
+dependencies[] = jquery_update
